@@ -1,5 +1,7 @@
 import unittest
 from markdownhelper import (
+    BlockType,
+    block_to_block_type,
     extract_markdown_images,
     extract_markdown_links,
     markdown_to_blocks,
@@ -158,24 +160,56 @@ class TestInlineMarkdown(unittest.TestCase):
             ],
             nodes,
         )
-        def test_markdown_to_blocks(self):
-            md = """
-        This is **bolded** paragraph
+    def test_markdown_to_blocks(self):
+        md = """
+    This is **bolded** paragraph
 
-        This is another paragraph with _italic_ text and `code` here
-        This is the same paragraph on a new line
+    This is another paragraph with _italic_ text and `code` here
+    This is the same paragraph on a new line
 
-        - This is a list
-        - with items
-        """
-            blocks = markdown_to_blocks(md)
-            self.assertEqual(
-                blocks,
-                [
-                    "This is **bolded** paragraph",
-                    "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
-                    "- This is a list\n- with items",
-                ],
-            )
+    - This is a list
+    - with items
+    """
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+    def test_block_to_block_type_ulist(self):
+        md = """
+    - This is a list
+    - with items
+    """
+        blocks = block_to_block_type(md.strip())
+        self.assertEqual(blocks, BlockType.ULIST)
+
+    def test_block_to_block_type_olist(self):
+        md = """
+    1. This is a list
+    2. with items
+    """
+        blocks = block_to_block_type(md.strip())
+        self.assertEqual(blocks, BlockType.OLIST)
+
+    def test_block_to_block_type_code(self):
+        md = """```
+    print("this is code")
+    ```    """
+        blocks = block_to_block_type(md.strip())
+        self.assertEqual(blocks, BlockType.CODE)
+
+    def test_block_to_block_type_heading(self):
+        md = "### heading text"
+        blocks = block_to_block_type(md.strip())
+        self.assertEqual(blocks, BlockType.HEADING)
+
+    def test_block_to_block_type_quote(self):
+        md = "> this is a quote"
+        blocks = block_to_block_type(md.strip())
+        self.assertEqual(blocks, BlockType.QUOTE)
 if __name__ == "__main__":
     unittest.main()

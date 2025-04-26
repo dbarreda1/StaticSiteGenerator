@@ -1,6 +1,14 @@
+from enum import Enum
 import re
 from textnode import TextNode, TextType
 
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    ULIST = "unordered_list"
+    OLIST = "ordered_list"
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     node_list = []
@@ -86,5 +94,18 @@ def extract_markdown_links(text):
 
 def markdown_to_blocks(markdown):
     blocks = markdown.split("\n\n")
-    blocks = [x.strip() for x in blocks if x.strip() != ""]
+    blocks = [re.sub(r" {2,}","", x.strip()) for x in blocks if x.strip() != ""]
     return blocks
+
+def block_to_block_type(markdown):
+    if re.search(r"^#{1,6} ", markdown):
+        return BlockType.HEADING
+    elif markdown.startswith("```") and markdown.endswith("```"):
+        return BlockType.CODE
+    elif markdown.startswith(">"):
+        return BlockType.QUOTE
+    elif markdown.startswith("- "):
+        return BlockType.ULIST
+    elif re.search(r"^\d. ", markdown):
+        return BlockType.OLIST
+    return BlockType.PARAGRAPH
